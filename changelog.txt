@@ -1,2 +1,5 @@
+[B]Version 1.0.1 - 2011-11-20[/B]
+- Fix video list URL
+
 [B]Version 1.0.0 - 2011-11-14[/B]
 - Initial release
