@@ -8,7 +8,7 @@ import xbmcgui
 import xbmcaddon
 import xbmcplugin
 
-VIDEO_LIST_URL = 'http://news.tv2.dk/js/video-list.js.php/'
+VIDEO_LIST_URL = 'http://news.tv2.dk/js/video-list.js.php/video.js'
 PLAYLIST_URL = 'http://common-dyn.tv2.dk/flashplayer/playlist.xml.php/alias-player_news/autoplay-1/clipid-%s/keys-NEWS,PLAYER.xml'
 
 class TV2NewsAddon(object):
