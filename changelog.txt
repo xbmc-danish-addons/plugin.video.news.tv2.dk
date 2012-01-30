@@ -1,3 +1,6 @@
+[B]Version 1.0.2 - 2011-02-xx[/B]
+- Improved error handling with option for the user to submit exceptions/bugs
+
 [B]Version 1.0.1 - 2011-11-20[/B]
 - Fix video list URL
 
