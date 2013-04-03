@@ -28,7 +28,7 @@ import xbmcgui
 import xbmcaddon
 import xbmcplugin
 import simplejson
-
+import datetime
 
 # http://nyhederne.tv2.dk/video/data/tag/nyheder/
 # http://nyhederne.tv2.dk/video/data/tag/nyh0600/day/0/staticjsonp/staticjsonp_148f9/
@@ -41,10 +41,10 @@ FLASH_PLAYLIST_URL = 'http://common.tv2.dk/flashplayer/playlist.xml.php/clipid-%
 
 
 class TV2NewsAddon(object):
-    def listTags(self):
 
-        for tag in TAGS:
-            title = tag
+    def listTags(self):
+        for idx, tag in enumerate(TAGS):
+            title = ADDON.getLocalizedString(30000 + idx)
 
             item = xbmcgui.ListItem(title, iconImage=ICON)
             item.setProperty('Fanart_Image', FANART)
@@ -54,31 +54,43 @@ class TV2NewsAddon(object):
         xbmcplugin.endOfDirectory(HANDLE)
 
     def listClips(self, tag):
-        clips = self._loadJson(tag)
+        try:
+            u = urllib2.urlopen(VIDEO_DATA_URL % tag)
+            data = u.read()
+            u.close()
+            clips = simplejson.loads(data.decode('iso-8859-1'))
+        except Exception as ex:
+            heading = buggalo.getRandomHeading()
+            line1 = ADDON.getLocalizedString(30900)
+            line2 = ADDON.getLocalizedString(30901)
+            xbmcgui.Dialog().ok(heading, line1, line2, str(ex))
+            return
 
         for clip in clips:
             if 'section' in clip:
-                title = self._decodeHtmlEntities('%s: %s' %(clip['section'], clip['title']))
+                title = self._decodeHtmlEntities('%s: %s' % (clip['section'], clip['title']))
             else:
                 title = self._decodeHtmlEntities(clip['title'])
-            #date = m.group(5)
+            date = datetime.date.fromtimestamp(clip['created'])
 
             item = xbmcgui.ListItem(title, iconImage=clip['img'])
             item.setInfo('video', {
                 'title': title,
                 'studio': ADDON.getAddonInfo('name'),
-                'plot': clip['description'],
-                #'date': date[6:].replace('-', '.')
+                'plot': self._decodeHtmlEntities(clip['description']),
+                'date': date.strftime('%d.%m.%Y')
             })
+
             item.setProperty('IsPlayable', 'true')
             item.setProperty('Fanart_Image', FANART)
             url = PATH + '?id=' + str(clip['id'])
             xbmcplugin.addDirectoryItem(HANDLE, url, item)
 
+        xbmcplugin.addSortMethod(HANDLE, xbmcplugin.SORT_METHOD_UNSORTED)
+        xbmcplugin.addSortMethod(HANDLE, xbmcplugin.SORT_METHOD_DATE)
         xbmcplugin.endOfDirectory(HANDLE)
 
     def playClip(self, clipId):
-        url = None
         try:
             u = urllib2.urlopen(PLAYLIST_URL % clipId)
             html = u.read()
@@ -109,23 +121,11 @@ class TV2NewsAddon(object):
             xbmcplugin.setResolvedUrl(HANDLE, False, xbmcgui.ListItem())
             return
 
+        item = xbmcgui.ListItem(thumbnailImage=ICON)
         if url:
-            item = xbmcgui.ListItem(path=url, thumbnailImage=ICON)
+            item.setPath(url)
+
         xbmcplugin.setResolvedUrl(HANDLE, succeeded=url is not None, listitem=item)
-
-    def _loadJson(self, tag):
-        try:
-            u = urllib2.urlopen(VIDEO_DATA_URL % tag)
-            data = u.read()
-            u.close()
-            return simplejson.loads(data.decode('iso-8859-1'))
-        except Exception as ex:
-            heading = buggalo.getRandomHeading()
-            line1 = ADDON.getLocalizedString(30900)
-            line2 = ADDON.getLocalizedString(30901)
-            xbmcgui.Dialog().ok(heading, line1, line2, str(ex))
-
-            return None
 
     def _decodeHtmlEntities(self, string):
         """Decodes the HTML entities found in the string and returns the modified string.
@@ -171,6 +171,7 @@ if __name__ == '__main__':
     FANART = os.path.join(ADDON.getAddonInfo('path'), 'fanart.jpg')
     ICON = os.path.join(ADDON.getAddonInfo('path'), 'icon.png')
 
+    buggalo.SUBMIT_URL = 'http://tommy.winther.nu/exception/submit.php'
     try:
         tv2News = TV2NewsAddon()
         if 'tag' in PARAMS:
