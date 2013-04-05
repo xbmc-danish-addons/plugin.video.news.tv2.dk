@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.news.tv2.dk" version="1.1.0" name="TV2 NEWS" provider-name="twinther">
+<addon id="plugin.video.news.tv2.dk" version="2.0.0" name="TV2 NEWS" provider-name="twinther">
     <requires>
-        <import addon="xbmc.python" version="2.0"/>
+        <import addon="xbmc.python" version="2.1.0"/>
         <import addon="script.module.simplejson" version="2.0.10"/>
         <import addon="script.module.buggalo" version="1.1.2"/>
     </requires>
